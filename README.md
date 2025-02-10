@@ -11,30 +11,45 @@ This is a vulnerable by design repository for demonstrating Snyk Insights. Do no
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [helm](https://helm.sh/docs/intro/install/)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- (EKSCTL)(https://formulae.brew.sh/formula/eksctl)
 
 ### Fork & Import
 
-Fork this repository and import it in a new or existing org.
+Fork this repository and navigate to it locally
 
 ```
-git clone https://github.com/somerset-inc/juice-shop-goof.git
+git clone https://github.com/pwalsh-snyk/juice-shop-goof
 cd juice-shop
 ```
 
 ### Deploy Juice Shop to EKS
 
-In A Cloud Guru create an AWS sandbox environment, then add the following as GitHub Actions Variables:
+In A Cloud Guru create an AWS sandbox environment.
+
+Configure AWS CLI:
 
 ```
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
-SNYK_ORG_ID
-SNYK_TOKEN
+aws configure
+```
+When promted, input the AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY from A Cloud Guru
+
+Run the Script:
+
+```
+./deploy.sh
 ```
 
-Edit the [_build_flag](./_build_flag) file to trigger EKS provisioning and Juice Shop deployment.
+After the script has been executed and the Juice-Shop app has been deployed on your EKS cluster, you can access Juice Shop locally by running the following:
 
-## Step 1: Deploy the Kubernetes Connector
+```
+kubectl port-forward deployment/snyk-juice-shop 1337:3000
+```
+Then access locally at: http://localhost:1337
+
+## Step 1: Deploy the Snyk Runtime Sensor
+
+
+TO BE DELETED:
 
 Create Snyk Service Acount with minimum scope: [docs](https://docs.snyk.io/manage-risk/snyk-apprisk/risk-based-prioritization-for-snyk-apprisk/prioritization-setup/prioritization-setup-kubernetes-connector#step-2-create-a-new-role)
 
@@ -58,12 +73,12 @@ helm repo update
 Install the chart
 ```
 helm install insights \
-	--set "secretName=insights-secret" \
-	--set "config.clusterName=juice-shop-cluster" \
-	--set "config.routes[0].organizationID=YOUR_ORG_ID" \
-	--set "config.routes[0].clusterScopedResources=true" \
-	--set "config.routes[0].namespaces[0]=*"  \
-	kubernetes-scanner/kubernetes-scanner
+    --set "secretName=insights-secret" \
+    --set "config.clusterName=juice-shop-cluster" \
+    --set "config.routes[0].organizationID=YOUR_ORG_ID" \
+    --set "config.routes[0].clusterScopedResources=true" \
+    --set "config.routes[0].namespaces[0]=*"  \
+    kubernetes-scanner/kubernetes-scanner
 ```
 
 Run `kubectl get pods` to verify the pod is running.
@@ -89,3 +104,5 @@ Review script at [insights/apply-tags.py](./insights/apply-tags.py).
 pip install requests
 python3 insights/apply-tags.py --org-id your-org-id --snyk-token your-snyk-token --origin github
 ```
+
+
