@@ -4,7 +4,7 @@
 
 This is a vulnerable by design repository for demonstrating Snyk Insights. Do not deploy this in production.
 
-## Step 0: Prepare Demo Environemnt
+## Prepare Demo Environemnt
 
 ### Install Tools
 
