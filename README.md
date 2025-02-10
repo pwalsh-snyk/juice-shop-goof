@@ -11,7 +11,7 @@ This is a vulnerable by design repository for demonstrating Snyk Insights. Do no
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [helm](https://helm.sh/docs/intro/install/)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-- (EKSCTL)(https://formulae.brew.sh/formula/eksctl)
+- [EKSCTL](https://formulae.brew.sh/formula/eksctl)
 
 ### Fork & Import
 
