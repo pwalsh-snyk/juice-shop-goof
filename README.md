@@ -36,6 +36,7 @@ When promted, input the AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY from A Cloud G
 Run the Script:
 
 ```
+chmod +x deploy.sh
 ./deploy.sh
 ```
 
