@@ -49,40 +49,50 @@ Then access locally at: http://localhost:1337
 
 ## Step 1: Deploy the Snyk Runtime Sensor
 
+This demo will be deploying the runtime sensor as a [DaemonSet using Helm] (https://docs.snyk.io/integrate-with-snyk/snyk-runtime-sensor#using-a-helm-chart). For other deployment options, see the [Snyk help docs] (https://docs.snyk.io/)
+
+Create a token for a [Snyk Service Account] (https://docs.snyk.io/enterprise-setup/service-accounts) with one of the following roles:
+
+- Group Admin
+- Custom Group Level Role with AppRisk edit permission enabled.
+
+Create the proper namespace:
+```
+kubectl create namespace snyk-runtime-sensor
+```
+
+Create a Secret with Your Snyk Token
+```
+kubectl create secret generic <<YOUR_SECRET_NAME>> --from-literal=snykToken=<<YOUR_TOKEN>> -n snyk-runtime-sensor
+```
+
+Add the Helm Repository
+```
+helm repo add runtime-sensor https://snyk.github.io/runtime-sensor
+```
+
+Note: If your data is hosted in a different region than the default region (USA), you need to set the snykAPIBaseURL while installing the Helm chart in the following format: api.<<REGION>>.snyk.io:443, for example api.eu.snyk.io:443
+
+Install the Snyk Runtime Sensor
+```
+helm install my-runtime-sensor \
+--set workloadType=daemonset \ # Can be ommited, as 'daemonset' is the default
+--set secretName=<<YOUR_SECRET_NAME>> \
+--set clusterName=<<CLUSTER_NAME>> \
+--set snykGroupId=<<YOUR_GROUP_ID>> \
+--set snykAPIBaseURL=api.<<REGION>>.snyk.io:443 \ # Optional
+-n snyk-runtime-sensor \
+runtime-sensor/runtime-sensor
+```
+
+Verify successful install
+```
+kubectl get pods -n snyk-runtime-sensor
+```
 
 TO BE DELETED:
 
-Create Snyk Service Acount with minimum scope: [docs](https://docs.snyk.io/manage-risk/snyk-apprisk/risk-based-prioritization-for-snyk-apprisk/prioritization-setup/prioritization-setup-kubernetes-connector#step-2-create-a-new-role)
 
-Log into AWS CLI:
-```
-aws configure
-aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
-```
-
-Add the secret
-```
-kubectl create secret generic insights-secret --from-literal=snykServiceAccountToken=YOUR_SNYK_TOKEN
-```
-
-Add the Helm chart
-```
-helm repo add kubernetes-scanner https://snyk.github.io/kubernetes-scanner
-helm repo update
-```
-
-Install the chart
-```
-helm install insights \
-    --set "secretName=insights-secret" \
-    --set "config.clusterName=juice-shop-cluster" \
-    --set "config.routes[0].organizationID=YOUR_ORG_ID" \
-    --set "config.routes[0].clusterScopedResources=true" \
-    --set "config.routes[0].namespaces[0]=*"  \
-    kubernetes-scanner/kubernetes-scanner
-```
-
-Run `kubectl get pods` to verify the pod is running.
 
 ## Step 2: Scan and Tag Container projects
 
