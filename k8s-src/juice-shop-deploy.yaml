@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: juice-shop
-        image: 533267345151.dkr.ecr.us-west-2.amazonaws.com/juice-shop-repo:juice-shop-app
+        image: <ECR_IMAGE>
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
