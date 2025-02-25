@@ -49,7 +49,7 @@ Then access locally at: http://localhost:1337
 
 ## Step 1: Deploy the Snyk Runtime Sensor
 
-This demo will be deploying the runtime sensor as a [DaemonSet using Helm] (https://docs.snyk.io/integrate-with-snyk/snyk-runtime-sensor#using-a-helm-chart). For other deployment options, see the [Snyk help docs] (https://docs.snyk.io/)
+This demo will be deploying the runtime sensor as a DaemonSet using Helm. 
 
 Create a token for a [Snyk Service Account] (https://docs.snyk.io/enterprise-setup/service-accounts) with one of the following roles:
 
