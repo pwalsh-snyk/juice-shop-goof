@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2014-2023 Bjoern Kimminich & the OWASP Juice Shop contributors.
- * SPDX-License-Identifier: MIT
- */
-
 import models = require('../models/index')
 import { type Request, type Response, type NextFunction } from 'express'
 import { type User } from '../data/types'
@@ -10,31 +5,33 @@ import { BasketModel } from '../models/basket'
 import { UserModel } from '../models/user'
 import challengeUtils = require('../lib/challengeUtils')
 import config from 'config'
-
 import * as utils from '../lib/utils'
 const security = require('../lib/insecurity')
 const challenges = require('../data/datacache').challenges
 const users = require('../data/datacache').users
 
-// vuln-code-snippet start loginAdminChallenge loginBenderChallenge loginJimChallenge
 module.exports = function login () {
   function afterLogin (user: { data: User, bid: number }, res: Response, next: NextFunction) {
-    verifyPostLoginChallenges(user) // vuln-code-snippet hide-line
+    verifyPostLoginChallenges(user)
     BasketModel.findOrCreate({ where: { UserId: user.data.id } })
       .then(([basket]: [BasketModel, boolean]) => {
         const token = security.authorize(user)
-        user.bid = basket.id // keep track of original basket
+        user.bid = basket.id
         security.authenticatedUsers.put(token, user)
         res.json({ authentication: { token, bid: basket.id, umail: user.data.email } })
       }).catch((error: Error) => {
-        next(error)
+        res.status(500).send(error.stack)
       })
   }
 
   return (req: Request, res: Response, next: NextFunction) => {
-    verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
-    models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
-      .then((authenticatedUser: { data: User }) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+    verifyPreLoginChallenges(req)
+
+    const input = {}
+    Object.assign(input, req.body)
+
+    models.sequelize.query(`SELECT * FROM Users WHERE email = '${input.email || ''}' AND password = '${security.hash(input.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true })
+      .then((authenticatedUser: { data: User }) => {
         const user = utils.queryResultToJson(authenticatedUser)
         if (user.data?.id && user.data.totpSecret !== '') {
           res.status(401).json({
@@ -47,16 +44,15 @@ module.exports = function login () {
             }
           })
         } else if (user.data?.id) {
-          // @ts-expect-error FIXME some properties missing in user - vuln-code-snippet hide-line
+          // @ts-expect-error FIXME some properties missing in user
           afterLogin(user, res, next)
         } else {
           res.status(401).send(res.__('Invalid email or password.'))
         }
       }).catch((error: Error) => {
-        next(error)
+        res.status(500).send(error.stack)
       })
   }
-  // vuln-code-snippet end loginAdminChallenge loginBenderChallenge loginJimChallenge
 
   function verifyPreLoginChallenges (req: Request) {
     challengeUtils.solveIf(challenges.weakPasswordChallenge, () => { return req.body.email === 'admin@' + config.get('application.domain') && req.body.password === 'admin123' })
@@ -83,3 +79,4 @@ module.exports = function login () {
     }
   }
 }
+
