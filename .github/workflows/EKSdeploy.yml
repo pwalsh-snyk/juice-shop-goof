@@ -1,0 +1,61 @@
+name: Deploy Juice Shop on EKS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Checkout repo
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    # 2️⃣ Set AWS creds from secrets
+    - name: Configure AWS Credentials (ACG Sandbox)
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # 3️⃣ Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
+
+    # 4️⃣ Terraform Init
+    - name: Terraform Init
+      run: terraform init
+
+    # 5️⃣ Apply EKS only (infra)
+    - name: Terraform Apply (EKS Infra Only)
+      run: terraform apply -target=module.eks -auto-approve
+
+    # 6️⃣ Wait for EKS to be ACTIVE
+    - name: Wait for EKS Readiness
+      run: |
+        for i in {1..30}; do
+          STATUS=$(aws eks describe-cluster \
+            --name juice-shop-cluster \
+            --region us-east-1 \
+            --query "cluster.status" --output text)
+          echo "EKS status: $STATUS"
+          if [ "$STATUS" = "ACTIVE" ]; then
+            break
+          fi
+          sleep 10
+        done
+
+    # 7️⃣ Apply everything else (K8s, ECR, app)
+    - name: Terraform Apply (Full)
+      run: terraform apply -auto-approve
+
+    # 8️⃣ Optional: Show app ingress/service info
+    - name: Get Ingress Info
+      run: |
+        aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
+        kubectl get ingress
