@@ -30,10 +30,12 @@ jobs:
 
     # 4️⃣ Terraform Init
     - name: Terraform Init
+      working-directory: terraform
       run: terraform init
 
-    # 5️⃣ Apply EKS infrastructure only
+    # 5️⃣ Apply EKS infra only
     - name: Terraform Apply (EKS Infra Only)
+      working-directory: terraform
       run: terraform apply -target=module.eks -auto-approve
 
     # 6️⃣ Wait for EKS cluster to become ACTIVE
@@ -52,11 +54,12 @@ jobs:
           sleep 10
         done
 
-    # 7️⃣ Terraform Apply - deploy all remaining components
+    # 7️⃣ Terraform Apply (rest of the stack)
     - name: Terraform Apply (Full)
+      working-directory: terraform
       run: terraform apply -auto-approve
 
-    # 8️⃣ Optional: Output Ingress Info
+    # 8️⃣ Output Ingress Info (Optional)
     - name: Get Ingress Info
       run: |
         aws eks update-kubeconfig --region us-east-1 --name juice-shop-cluster
