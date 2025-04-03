@@ -5,6 +5,8 @@ module "eks" {
   cluster_name                   = var.name
   cluster_endpoint_public_access = true
 
+  enable_irsa = true
+
   cluster_addons = {
     coredns = {
       most_recent = true
@@ -22,8 +24,8 @@ module "eks" {
   control_plane_subnet_ids = module.vpc.intra_subnets
 
   eks_managed_node_group_defaults = {
-    ami_type       = "BOTTLEROCKET_ARM_64"
-    instance_types = ["t4g.medium"]
+    ami_type       = "AL2_x86_64"
+    instance_types = ["t3.medium"]
 
     attach_cluster_primary_security_group = true
   }
@@ -34,14 +36,12 @@ module "eks" {
       max_size     = 2
       desired_size = 1
 
-      instance_types = ["t4g.medium"]
-      capacity_type  = "SPOT"
+      instance_types = ["t3.medium"]
+      capacity_type  = "ON_DEMAND"
 
       tags = {
-        Name    = "juice-shop-arm64"
+        Name    = "juice-shop-x86"
         Project = "juice-shop"
-        OS      = "Bottlerocket"
-        Arch    = "ARM64"
       }
     }
   }
