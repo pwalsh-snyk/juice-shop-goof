@@ -4,8 +4,7 @@ module "eks" {
 
   cluster_name                   = var.name
   cluster_endpoint_public_access = true
-
-  enable_irsa = true
+  enable_irsa                    = true
 
   cluster_addons = {
     coredns = {
@@ -38,6 +37,9 @@ module "eks" {
 
       instance_types = ["t3.medium"]
       capacity_type  = "ON_DEMAND"
+
+      # ✅ Ensure nodes launch in public subnets (for outbound internet access in ACG)
+      subnet_ids = module.vpc.public_subnets
 
       tags = {
         Name    = "juice-shop-x86"
